@@ -18,8 +18,20 @@ public:
     }
 };
 
+int test(){
+    int i=1;
+    cout << "test is running" <<endl;
+    cout << i << endl;
+}
 int main(){
-    unordered_map<int,int>a;
-    cout << a.size()<<endl;
-    cout << a[0] << a.size() <<endl;
+    int i=0;
+    int x=1;
+    int y=2;
+    test();
+    while (i<=10)
+    {
+        cout << i <<endl;
+        i++;
+    }
+    
 }

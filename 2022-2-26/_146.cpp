@@ -27,32 +27,72 @@ private:
 public:
     LRUCache(int capacity) {
         this->capacity=capacity;
+        this->size=0;
         this->head=new LRUList();
         this->tail=new LRUList();
         this->head->right=tail;
         this->tail->left=head;
-        this->size=0;
+    }
+    void remove_last(){
+        this->lru.erase(this->tail->left->key);
+        this->tail->left=this->tail->left->left;
+        this->tail->left->right=this->tail;
     }
     
+    void insert_first(LRUList * tmp){
+
+        tmp->right=this->head->right;
+        this->head->right->left=tmp;
+
+        this->head->right=tmp;
+        tmp->left=this->head;
+    }
+    void remove_node(LRUList * tmp){
+        tmp->right->left=tmp->left;
+        tmp->left->right=tmp->right;
+    }
+
     int get(int key) {
         if(this->lru.find(key)==this->lru.end()){ // do not find.
             return -1;
         }
-        LRUList *tmp=this->lru.find(key)->second;
-
-        this->head->right=tmp;
-        tmp->left=this->head;
-        tmp->right=this->head->right->right;
-        this->head->left=tmp;
-
+        remove_node(this->lru.find(key)->second);
+        insert_first(this->lru.find(key)->second);
         return this->lru[key]->val; 
-
     }
     
     void put(int key, int value) {
-
+        if(this->lru.find(key)!=this->lru.end()){
+            LRUList *tmp=this->lru.find(key)->second;
+            tmp->val=value;
+            remove_node(tmp);
+            insert_first(tmp);
+        }else{
+            if(this->size==this->capacity){ // do not find
+                remove_last();
+                LRUList *tmp=new LRUList(key,value);
+                this->lru[key]=tmp;
+                insert_first(tmp);
+            }else{
+                LRUList *tmp=new LRUList(key,value);
+                this->lru[key]=tmp;
+                insert_first(tmp);
+                (this->size)++;
+            }
+        }
     }
 };
+// to debug
+int main(){
+    auto lRUCache = new LRUCache(2);
+    lRUCache->put(2, 1); // 缓存是 {1=1}
+    lRUCache->put(1, 1); // 缓存是 {1=1, 2=2}
+    lRUCache->put(2,3);    // 返回 1
+    lRUCache->put(4,1);    // 返回 -1 (未找到)
+    lRUCache->get(1); // 该操作会使得关键字 1 作废，缓存是 {4=4, 3=3}
+    lRUCache->get(2);    // 返回 -1 (未找到)
+
+}
 
 /**
  * Your LRUCache object will be instantiated and called as such:
